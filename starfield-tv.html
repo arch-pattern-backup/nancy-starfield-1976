@@ -72,6 +72,14 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
   background:black;
   opacity:1;
   cursor:pointer;
+  outline:none;
+}
+#cold-open:focus{
+  box-shadow:inset 0 0 0 4px rgba(0,242,255,.3);
+}
+#cold-open:focus p:last-child{
+  color:var(--gold);
+  text-shadow:0 0 10px rgba(255,180,0,.5);
 }
 #cold-open.hidden{
   animation:coldFade 1s ease forwards;
@@ -202,6 +210,10 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 .crawl-nav-btn.desktop:hover{background:rgba(162,155,254,.2);border-color:#a29bfe;color:#fff;}
 .crawl-nav-btn.fullscreen{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3);color:#fff;}
 .crawl-nav-btn.fullscreen:hover{background:rgba(255,255,255,.2);border-color:#fff;}
+.crawl-nav-btn:focus{
+  outline:2px solid #00e8ff;
+  outline-offset:2px;
+}
 
 /* Fullscreen and cast hint */
 #tech-hint{
@@ -215,6 +227,24 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 }
 #tech-hint.hidden{opacity:0;pointer-events:none;}
 #tech-hint span{color:var(--gold);}
+
+/* Skip hint */
+#skip-hint{
+  position:fixed;top:10px;left:10px;z-index:40;
+  background:rgba(0,0,0,.75);
+  border:1px solid rgba(255,255,255,.2);
+  padding:8px 14px;font-size:clamp(.55rem,1vw,.7rem);
+  letter-spacing:2px;color:rgba(255,255,255,.6);
+  border-radius:4px;
+  transition:opacity 0.5s ease;
+}
+#skip-hint.hidden{opacity:0;pointer-events:none;}
+#skip-hint kbd{
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.3);
+  padding:2px 6px;border-radius:3px;
+  font-family:inherit;font-size:inherit;
+}
 
 /* ═══════════════════════════════════════════════
    STARFIELD PHASE (after crawl)
@@ -363,9 +393,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <div id="karaoke-display"></div>
 
 <!-- ── COLD OPEN ── -->
-<div id="cold-open">
+<div id="cold-open" tabindex="0" role="button" aria-label="Click or press Enter to begin the Star Wars crawl">
   <p>A long time ago,<br>in a land far, far away&hellip;</p>
-  <p style="margin-top:2rem;font-size:clamp(1rem,2vw,1.5rem);color:#fff;animation:blink 2s ease-in-out infinite;">Click anywhere to begin</p>
+  <p style="margin-top:2rem;font-size:clamp(1rem,2vw,1.5rem);color:#fff;animation:blink 2s ease-in-out infinite;">Click anywhere or press Enter to begin</p>
 </div>
 
 <!-- ── CRAWL ── -->
@@ -477,12 +507,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   <a href="starfield-nancy.html" class="crawl-nav-btn nancy">&#128276; NANCY MODE</a>
   <a href="starfield-mobile.html" class="crawl-nav-btn mobile">&#128241; MOBILE</a>
   <a href="starfield.html" class="crawl-nav-btn desktop">&#128187; DESKTOP</a>
-  <button class="crawl-nav-btn fullscreen" id="crawl-fullscreen">&#128269; FULLSCREEN</button>
+  <button class="crawl-nav-btn fullscreen" id="crawl-fullscreen" tabindex="0">&#128269; FULLSCREEN</button>
 </div>
 
 <!-- ── TECH HINT ── -->
 <div id="tech-hint">
   <span>&#128250;</span> Chrome: 3-dot menu &#8942; &rarr; Cast&#8230; to TV
+</div>
+
+<!-- ── SKIP HINT ── -->
+<div id="skip-hint">
+  Press <kbd>ESC</kbd> or tap to skip
 </div>
 
 <!-- ── SIMULATION UI ── -->
@@ -584,9 +619,10 @@ function beginSim(){
   document.getElementById('cold-open').style.display  = 'none';
   document.getElementById('sim-ui').classList.add('show');
   
-  // Hide crawl navigation and tech hint
+  // Hide crawl navigation, tech hint, and skip hint
   document.getElementById('crawl-nav').classList.add('hidden');
   document.getElementById('tech-hint').classList.add('hidden');
+  document.getElementById('skip-hint').classList.add('hidden');
   
   // Stop audio when simulation starts
   const audio = document.getElementById('birthday-audio');
@@ -676,20 +712,39 @@ function startCrawl(){
 // Click on cold open to start
 document.getElementById('cold-open').addEventListener('click', startCrawl);
 
-// Skip on tap / key (bypasses crawl)
-document.addEventListener('keydown', beginSim);
-document.addEventListener('click',   function(e){
-  if(!e.target.closest('#cold-open')) beginSim();
+// Keyboard support for cold open (Enter or Space to start)
+document.getElementById('cold-open').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    startCrawl();
+  }
 });
-document.addEventListener('touchend',function(e){
-  if(!e.target.closest('#cold-open')) beginSim();
+
+// Skip on Escape key (bypasses crawl)
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    beginSim();
+  }
+});
+
+// Skip on tap/click (bypasses crawl) - but exclude navigation buttons
+document.addEventListener('click', function(e){
+  // Don't skip if clicking on navigation buttons or fullscreen button
+  if (e.target.closest('#crawl-nav') || e.target.closest('#tech-hint')) return;
+  if (!e.target.closest('#cold-open')) beginSim();
+});
+document.addEventListener('touchend', function(e){
+  // Don't skip if touching navigation buttons or fullscreen button
+  if (e.target.closest('#crawl-nav') || e.target.closest('#tech-hint')) return;
+  if (!e.target.closest('#cold-open')) beginSim();
 });
 
 // Auto-advance when crawl animation ends
 document.getElementById('crawl-body').addEventListener('animationend', beginSim);
 
 // Fullscreen functionality
-document.getElementById('crawl-fullscreen').addEventListener('click', function() {
+document.getElementById('crawl-fullscreen').addEventListener('click', function(e) {
+  e.stopPropagation(); // Prevent triggering the skip functionality
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(err => {
       console.log('Fullscreen error:', err);
@@ -697,6 +752,28 @@ document.getElementById('crawl-fullscreen').addEventListener('click', function()
   } else {
     document.exitFullscreen();
   }
+});
+
+// Keyboard support for fullscreen button
+document.getElementById('crawl-fullscreen').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.log('Fullscreen error:', err);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+});
+
+// Prevent navigation buttons from triggering skip
+document.querySelectorAll('#crawl-nav a').forEach(function(link) {
+  link.addEventListener('click', function(e) {
+    e.stopPropagation(); // Prevent triggering the skip functionality
+  });
 });
 
 // ── Simulation state ──────────────────────────────────────────────
