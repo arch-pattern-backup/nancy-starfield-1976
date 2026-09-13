@@ -259,7 +259,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 /* Event panels */
 .panels{display:flex;gap:16px;width:90%;flex-wrap:wrap;margin-top:4px;}
 .panel{flex:1;min-width:280px;background:rgba(0,0,0,.82);}
-.panel.gold-p{border:2px solid rgba(255,180,0,.45);}
+.panel.gold-p{border:2px solid rgba(255,180,0,.45);box-shadow:0 0 20px rgba(255,180,0,.15);}
 .panel.cyan-p{border:2px solid rgba(0,242,255,.3);}
 .ph{padding:12px 18px;font-size:clamp(.6rem,1vw,.8rem);letter-spacing:4px;
   display:flex;justify-content:space-between;}
@@ -271,9 +271,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   animation:ef .4s ease forwards;}
 @keyframes ef{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 .ev-list li:last-child{border:none;}
+.ev-list li.highlight{background:rgba(255,180,0,.15);border-left:3px solid var(--gold);}
 .ev-date{color:#00e8ff;font-size:clamp(.6rem,1vw,.8rem);white-space:nowrap;min-width:105px;padding-top:2px;}
 .ev-text{color:#fff3d4;font-size:clamp(.8rem,1.3vw,1rem);line-height:1.6;}
-.ev-personal{color:#ffe18a;}
+.ev-personal{color:#ffe18a;font-weight:600;}
+.ev-countdown{color:#00e8ff;font-size:clamp(.65rem,1.1vw,.85rem);display:block;margin-top:4px;font-weight:700;}
 .we-tag{font-size:.55rem;letter-spacing:2px;border:1px solid;padding:2px 6px;
   white-space:nowrap;align-self:flex-start;margin-top:3px;}
 .we-text{color:#d8f4ff;font-size:clamp(.8rem,1.3vw,1rem);line-height:1.6;}
@@ -441,9 +443,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 
   <div class="speed-row">
     <span>SLOW</span>
-    <input type="range" id="speed-slider" min="1" max="10" value="3">
+    <input type="range" id="speed-slider" min="0.1" max="10" step="0.1" value="0.5">
     <span>FAST</span>
-    <span id="speed-val" style="min-width:80px;color:#fff;">3 DAYS/FR</span>
+    <span id="speed-val" style="min-width:80px;color:#fff;">0.5 DAYS/FR</span>
   </div>
 
   <div class="big-year" id="year-display">1976</div>
@@ -626,7 +628,7 @@ document.getElementById('crawl-body').addEventListener('animationend', beginSim)
 
 // ── Simulation state ──────────────────────────────────────────────
 let simDate = new Date(1976,8,13);
-let paused=false, safeMode=false, daysPerFrame=3;
+let paused=false, safeMode=false, daysPerFrame=0.5;
 let stars=[],simStarted=false;
 let eventTotal=0, weTotal=0, bdayShown=false;
 let confettiParticles=[], confettiActive=false;
@@ -795,7 +797,39 @@ function checkEvents(date) {
 function logSikhEvent(evt,date) {
     const ds=date.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
     const cls=evt.personal?'ev-text ev-personal':'ev-text';
-    prependItem('event-list','<span class="ev-date">'+ds+'</span><span class="'+cls+'">'+evt.event+'</span>');
+    let extraHtml='';
+    let highlightClass='';
+    
+    // Highlight all personal events
+    if(evt.personal) {
+        highlightClass = 'highlight';
+    }
+    
+    // Add countdown for recurring annual events (birthdays, anniversaries)
+    if(evt.personal && (evt.event.includes('Birthday') || evt.event.includes('Anniversary'))) {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        // Use the event's month and day from the event data, but current year
+        const eventMonth = evt.month !== undefined ? evt.month : date.getMonth();
+        const eventDay = evt.day !== undefined ? evt.day : date.getDate();
+        const nextEventDate = new Date(currentYear, eventMonth, eventDay);
+        
+        // If the event has already passed this year, calculate for next year
+        if(nextEventDate < today) {
+            nextEventDate.setFullYear(currentYear + 1);
+        }
+        
+        const msDiff = nextEventDate - today;
+        const daysDiff = Math.ceil(msDiff / (1000 * 60 * 60 * 24));
+        
+        if(daysDiff > 0) {
+            extraHtml = '<span class="ev-countdown">' + daysDiff + ' days until next</span>';
+        } else if(daysDiff === 0) {
+            extraHtml = '<span class="ev-countdown">TODAY!</span>';
+        }
+    }
+    
+    prependItem('event-list','<span class="ev-date">'+ds+'</span><span class="'+cls+'">'+evt.event+extraHtml+'</span>', highlightClass);
     eventTotal++;
     setText('event-count', eventTotal+(eventTotal===1?' event':' events'));
 }
@@ -812,9 +846,10 @@ function logWorldEvent(evt,date) {
     setText('we-count', weTotal+(weTotal===1?' event':' events'));
 }
 
-function prependItem(listId, html) {
+function prependItem(listId, html, highlightClass='') {
     const ul=document.getElementById(listId); if(!ul) return;
     const li=document.createElement('li'); li.innerHTML=html;
+    if(highlightClass) li.classList.add(highlightClass);
     ul.insertBefore(li,ul.firstChild);
     while(ul.children.length>80) ul.removeChild(ul.lastChild);
 }
@@ -989,7 +1024,7 @@ document.getElementById('safe-btn').addEventListener('click',()=>{
   else o.style.transition='opacity 1.4s ease-out';
 });
 document.getElementById('speed-slider').addEventListener('input',function(){
-  daysPerFrame=parseInt(this.value);
+  daysPerFrame=parseFloat(this.value);
   document.getElementById('speed-val').textContent=daysPerFrame+' DAYS/FR';
 });
 document.getElementById('cat-select').addEventListener('change',function(){
