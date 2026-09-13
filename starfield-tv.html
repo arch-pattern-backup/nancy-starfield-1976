@@ -174,6 +174,49 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 @keyframes blink{0%,100%{opacity:.2;}50%{opacity:.6;}}
 
 /* ═══════════════════════════════════════════════
+   CRAWL NAVIGATION OVERLAY
+═══════════════════════════════════════════════ */
+#crawl-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;
+  background:rgba(0,0,0,.85);
+  border-top:2px solid rgba(255,180,0,.3);
+  padding:12px 20px;
+  display:flex;justify-content:center;gap:12px;
+  flex-wrap:wrap;
+  transition:opacity 0.5s ease;
+}
+#crawl-nav.hidden{opacity:0;pointer-events:none;}
+.crawl-nav-btn{
+  font-family:'JetBrains Mono',monospace;
+  font-size:clamp(.6rem,1.2vw,.8rem);letter-spacing:2px;
+  padding:8px 16px;cursor:pointer;border:2px solid;
+  transition:all .2s;text-decoration:none;display:inline-block;
+}
+.crawl-nav-btn.menu{background:rgba(0,242,255,.08);border-color:rgba(0,242,255,.4);color:#00e8ff;}
+.crawl-nav-btn.menu:hover{background:rgba(0,242,255,.2);border-color:#00e8ff;color:#fff;}
+.crawl-nav-btn.nancy{background:rgba(255,180,0,.08);border-color:rgba(255,180,0,.4);color:var(--gold);}
+.crawl-nav-btn.nancy:hover{background:rgba(255,180,0,.2);border-color:var(--gold);color:#fff;}
+.crawl-nav-btn.mobile{background:rgba(0,242,255,.08);border-color:rgba(0,242,255,.4);color:#00e8ff;}
+.crawl-nav-btn.mobile:hover{background:rgba(0,242,255,.2);border-color:#00e8ff;color:#fff;}
+.crawl-nav-btn.desktop{background:rgba(162,155,254,.08);border-color:rgba(162,155,254,.4);color:#a29bfe;}
+.crawl-nav-btn.desktop:hover{background:rgba(162,155,254,.2);border-color:#a29bfe;color:#fff;}
+.crawl-nav-btn.fullscreen{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3);color:#fff;}
+.crawl-nav-btn.fullscreen:hover{background:rgba(255,255,255,.2);border-color:#fff;}
+
+/* Fullscreen and cast hint */
+#tech-hint{
+  position:fixed;top:10px;right:10px;z-index:40;
+  background:rgba(0,0,0,.75);
+  border:1px solid rgba(0,242,255,.3);
+  padding:8px 14px;font-size:clamp(.55rem,1vw,.7rem);
+  letter-spacing:2px;color:#b0f0ff;
+  border-radius:4px;
+  transition:opacity 0.5s ease;
+}
+#tech-hint.hidden{opacity:0;pointer-events:none;}
+#tech-hint span{color:var(--gold);}
+
+/* ═══════════════════════════════════════════════
    STARFIELD PHASE (after crawl)
 ═══════════════════════════════════════════════ */
 #sim-ui{
@@ -428,6 +471,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   </div><!-- /crawl-body -->
 </div><!-- /crawl-stage -->
 
+<!-- ── CRAWL NAVIGATION OVERLAY ── -->
+<div id="crawl-nav">
+  <a href="index.html" class="crawl-nav-btn menu">&#8592; MENU</a>
+  <a href="starfield-nancy.html" class="crawl-nav-btn nancy">&#128276; NANCY MODE</a>
+  <a href="starfield-mobile.html" class="crawl-nav-btn mobile">&#128241; MOBILE</a>
+  <a href="starfield.html" class="crawl-nav-btn desktop">&#128187; DESKTOP</a>
+  <button class="crawl-nav-btn fullscreen" id="crawl-fullscreen">&#128269; FULLSCREEN</button>
+</div>
+
+<!-- ── TECH HINT ── -->
+<div id="tech-hint">
+  <span>&#128250;</span> Chrome: 3-dot menu &#8942; &rarr; Cast&#8230; to TV
+</div>
+
 <!-- ── SIMULATION UI ── -->
 <div id="sim-ui">
   <div class="sim-header">
@@ -435,6 +492,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
     <div class="sh-btns">
       <button class="sh-btn cyan" id="pause-btn">&#9646;&#9646; PAUSE</button>
       <button class="sh-btn gold" id="safe-btn">SAFE MODE</button>
+      <button class="sh-btn back" id="sim-fullscreen">&#128269; FULLSCREEN</button>
       <a href="starfield-nancy.html" class="sh-btn back">&#128276; NANCY MODE</a>
       <a href="starfield.html" class="sh-btn back">&#128187; DESKTOP</a>
       <a href="index.html" class="sh-btn back">&#8592; MENU</a>
@@ -525,6 +583,10 @@ function beginSim(){
   document.getElementById('crawl-stage').style.display = 'none';
   document.getElementById('cold-open').style.display  = 'none';
   document.getElementById('sim-ui').classList.add('show');
+  
+  // Hide crawl navigation and tech hint
+  document.getElementById('crawl-nav').classList.add('hidden');
+  document.getElementById('tech-hint').classList.add('hidden');
   
   // Stop audio when simulation starts
   const audio = document.getElementById('birthday-audio');
@@ -625,6 +687,17 @@ document.addEventListener('touchend',function(e){
 
 // Auto-advance when crawl animation ends
 document.getElementById('crawl-body').addEventListener('animationend', beginSim);
+
+// Fullscreen functionality
+document.getElementById('crawl-fullscreen').addEventListener('click', function() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log('Fullscreen error:', err);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+});
 
 // ── Simulation state ──────────────────────────────────────────────
 let simDate = new Date(1976,8,13);
@@ -1022,6 +1095,15 @@ document.getElementById('safe-btn').addEventListener('click',()=>{
   const o=document.getElementById('pulse-overlay');
   if(safeMode){o.style.transition='none';o.style.opacity='0';o.classList.remove('pulse-active');}
   else o.style.transition='opacity 1.4s ease-out';
+});
+document.getElementById('sim-fullscreen').addEventListener('click', function() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log('Fullscreen error:', err);
+    });
+  } else {
+    document.exitFullscreen();
+  }
 });
 document.getElementById('speed-slider').addEventListener('input',function(){
   daysPerFrame=parseFloat(this.value);
