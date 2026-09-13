@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Starfield 1976 · Mobile - For Nancy</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --glow:#00f2ff; --gold:#ffc94a; --bg:#020205; }
+        *    { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+
+        body {
+            background:var(--bg); color:var(--glow);
+            font-family:'JetBrains Mono',monospace;
+            display:flex; flex-direction:column; align-items:center;
+            overflow-x:hidden; overflow-y:auto; min-height:100dvh;
+        }
+
+        canvas { position:fixed; top:0; left:0; z-index:-1; }
+
+        /* ── CROSS-LINK ─────────────────────────────────── */
+        .crosslink-bar {
+            width:100%; background:rgba(0,0,0,.92);
+            border-bottom:1px solid rgba(0,242,255,.15);
+            padding:6px 16px; display:flex; justify-content:flex-end;
+        }
+        .crosslink-btn {
+            background:rgba(0,242,255,.07); border:1px solid rgba(0,242,255,.3);
+            color:#b0eeff; font-family:'JetBrains Mono',monospace;
+            font-size:.6rem; letter-spacing:2px; padding:5px 14px;
+            text-decoration:none; display:inline-block;
+        }
+
+        /* ── STICKY HEADER ──────────────────────────────── */
+        header {
+            width:100%; background:rgba(0,0,0,.94);
+            border-bottom:1px solid rgba(0,242,255,.25);
+            position:sticky; top:0; z-index:50;
+            padding:10px 14px; display:flex;
+            justify-content:space-between; align-items:center;
+            gap:8px; flex-wrap:wrap;
+        }
+        .h-status { font-size:.6rem; letter-spacing:2px; color:#ffffff; }
+        .h-stars  { font-size:.6rem; letter-spacing:2px; color:var(--gold); }
+
+        /* icon toolbar */
+        .toolbar { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+        .tb-btn {
+            background:rgba(0,242,255,.07); border:1px solid rgba(0,242,255,.25);
+            color:#c0eeff; font-family:'JetBrains Mono',monospace;
+            font-size:.6rem; letter-spacing:1px; padding:6px 10px; cursor:pointer;
+            transition:background .15s; white-space:nowrap;
+        }
+        .tb-btn:hover,.tb-btn.active { background:rgba(0,242,255,.2); border-color:#00e8ff; color:#fff; }
+        .tb-btn.gold { border-color:rgba(255,180,0,.35); color:var(--gold); background:rgba(255,180,0,.06); }
+        .tb-btn.gold:hover { background:rgba(255,180,0,.15); }
+
+        /* speed row */
+        .speed-row {
+            width:100%; background:rgba(0,0,0,.85);
+            border-bottom:1px solid rgba(0,242,255,.1);
+            padding:6px 14px; display:flex; align-items:center; gap:10px;
+        }
+        .speed-row label { font-size:.55rem; letter-spacing:3px; color:rgba(0,242,255,.7); }
+        input[type=range] {
+            -webkit-appearance:none; flex:1; height:3px;
+            background:rgba(0,242,255,.25); border-radius:2px; cursor:pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance:none; width:18px; height:18px;
+            border-radius:50%; background:#00e8ff; box-shadow:0 0 6px #00e8ff;
+        }
+        .speed-val { font-size:.65rem; color:#fff; min-width:20px; text-align:right; }
+
+        /* ── ODOMETER ────────────────────────────────────── */
+        .odometer {
+            font-size:3.6rem; font-weight:700; margin:20px 0 6px;
+            color:#fff; text-shadow:0 0 24px var(--glow),0 0 2px #fff;
+        }
+        .days-since {
+            font-size:.75rem; letter-spacing:2px; color:#fff;
+            background:rgba(0,0,0,.65); padding:5px 14px;
+            border:1px solid rgba(0,242,255,.15); margin-bottom:20px;
+            text-align:center;
+        }
+
+        /* ── WORLD CLOCKS — stacked ──────────────────────── */
+        .clock-container { width:92%; display:flex; flex-direction:column; gap:10px; }
+        .city-box {
+            background:rgba(0,0,0,.82); border:1px solid rgba(0,242,255,.25);
+            padding:12px 16px;
+            display:flex; justify-content:space-between; align-items:center;
+        }
+        .city-left  { display:flex; flex-direction:column; gap:3px; }
+        .city-name  { font-size:.65rem; letter-spacing:4px; color:#00e8ff; }
+        .city-date  { font-size:.78rem; color:#fff; }
+        .city-time  { font-size:1.5rem; font-weight:700; color:#fff; }
+
+        /* ── PANELS ──────────────────────────────────────── */
+        .panel {
+            width:92%; margin-top:16px; background:rgba(0,0,0,.85);
+            border:1px solid rgba(255,180,0,.3);
+        }
+        .panel.cyan { border-color:rgba(0,242,255,.3); }
+        .panel-hdr {
+            padding:10px 14px; font-size:.6rem; letter-spacing:3px;
+            border-bottom:1px solid rgba(255,180,0,.15);
+            display:flex; justify-content:space-between; align-items:center;
+        }
+        .panel.gold .panel-hdr { color:var(--gold); border-color:rgba(255,180,0,.2); }
+        .panel.cyan .panel-hdr { color:#00e8ff; border-color:rgba(0,242,255,.18); }
+        
+        .ev-list { list-style:none; max-height:220px; overflow-y:auto; }
+        .ev-list li {
+            display:flex; gap:10px; align-items:flex-start;
+            padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.06);
+            animation:ef .4s ease forwards;
+        }
+        @keyframes ef { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:none} }
+        .ev-list li:last-child { border:none; }
+        .ev-date { color:#00e8ff; font-size:.65rem; white-space:nowrap; min-width:90px; padding-top:2px; }
+        .ev-text { color:#fff3d4; font-size:.75rem; line-height:1.5; }
+        .ev-personal { color:#ffe18a; }
+        .we-tag { font-size:.55rem; letter-spacing:2px; border:1px solid; padding:2px 6px; margin-top:2px; }
+        .we-text { color:#d8f4ff; font-size:.75rem; line-height:1.5; }
+
+        /* ── CATEGORY SELECTOR ───────────────────────────── */
+        .cat-row {
+            width:92%; margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;
+        }
+        .cat-chip {
+            background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.15);
+            color:rgba(255,255,255,.5); font-family:'JetBrains Mono',monospace;
+            font-size:.5rem; letter-spacing:2px; padding:4px 10px; cursor:pointer;
+            transition:all .15s;
+        }
+        .cat-chip:hover { color:#fff; border-color:var(--cat-color,#fff); }
+        .cat-chip.active {
+            background:rgba(0,0,0,.3); border-color:var(--cat-color,#00e8ff);
+            color:var(--cat-color,#00e8ff);
+        }
+
+        /* ── MILESTONE FORM ─────────────────────────────── */
+        .ms-toggle {
+            width:92%; margin-top:16px; background:rgba(255,180,0,.08);
+            border:1px solid rgba(255,180,0,.4); color:var(--gold);
+            font-family:'JetBrains Mono',monospace; font-size:.7rem; letter-spacing:3px;
+            padding:12px; cursor:pointer; text-align:center;
+        }
+        .ms-panel { display:none; width:92%; background:rgba(0,0,0,.88);
+            border:1px solid rgba(255,180,0,.4); border-top:none; padding:16px; }
+        .ms-panel.open { display:block; }
+        .ms-form { display:flex; flex-direction:column; gap:10px; }
+        .ms-g label { font-size:.6rem; letter-spacing:3px; color:rgba(0,242,255,.7); display:block; margin-bottom:4px; }
+        .ms-g input { background:rgba(0,242,255,.06); border:1px solid rgba(0,242,255,.25);
+            color:#fff; font-family:'JetBrains Mono',monospace; font-size:.8rem;
+            padding:10px 12px; outline:none; width:100%; }
+        .ms-g input:focus { border-color:#00e8ff; }
+        .ms-add { background:rgba(255,180,0,.12); border:1px solid rgba(255,180,0,.5);
+            color:var(--gold); font-family:'JetBrains Mono',monospace; font-size:.75rem;
+            letter-spacing:3px; padding:12px; cursor:pointer; margin-top:4px; }
+        .ms-error { font-size:.65rem; color:#ff7070; letter-spacing:2px; display:none; margin-top:4px; }
+        .ms-saved { list-style:none; margin-top:10px; border-top:1px solid rgba(255,180,0,.15); }
+        .ms-saved li { display:flex; justify-content:space-between; align-items:center;
+            padding:8px 0; font-size:.7rem; border-bottom:1px solid rgba(255,180,0,.08); color:#fff3d4; }
+        .ms-del { background:none; border:none; color:rgba(255,100,100,.45); cursor:pointer; font-size:1rem; }
+
+        /* ── BIRTHDAY SPLASH ─────────────────────────────── */
+        #bday-splash {
+            display:none; position:fixed; inset:0; z-index:200;
+            background:rgba(0,0,0,.92); flex-direction:column; align-items:center;
+            justify-content:center; text-align:center; padding:24px;
+        }
+        #bday-splash.show { display:flex; }
+        .bday-msg {
+            font-size:clamp(1.8rem,6vw,3.5rem); font-weight:700; color:var(--gold);
+            letter-spacing:4px; line-height:1.3;
+            animation:bp 2s ease-in-out infinite alternate;
+        }
+        @keyframes bp { from{text-shadow:0 0 20px rgba(255,180,0,.7);}
+            to{text-shadow:0 0 60px rgba(255,255,100,.95),0 0 100px rgba(255,180,0,.4);}}
+        .bday-sub { margin-top:12px; font-size:.8rem; letter-spacing:3px; color:#fff; opacity:.85; }
+        .bday-yrs { margin-top:10px; font-size:1.2rem; letter-spacing:3px; color:#00e8ff; }
+        #bday-close { margin-top:24px; background:none; border:1px solid rgba(255,180,0,.6);
+            color:var(--gold); font-family:'JetBrains Mono',monospace; font-size:.8rem;
+            letter-spacing:3px; padding:12px 24px; cursor:pointer; }
+
+        /* ── PULSE OVERLAY ───────────────────────────────── */
+        #pulse-overlay {
+            position:fixed; inset:0; pointer-events:none; z-index:98; opacity:0;
+            background:radial-gradient(ellipse at center,rgba(255,165,0,.15) 0%,transparent 68%);
+            transition:opacity 1.4s ease-out;
+        }
+        #pulse-overlay.pulse-active { opacity:1; }
+
+        /* ── CONFETTI ─────────────────────────────────────── */
+        #confetti-canvas { position:fixed; inset:0; z-index:199; pointer-events:none; }
+    </style>
+</head>
+<body>
+<canvas id="starfield"></canvas>
+<canvas id="confetti-canvas"></canvas>
+<div id="pulse-overlay"></div>
+
+<div class="crosslink-bar">
+    <a href="index.html" class="crosslink-btn">&#8592; MENU</a>
+</div>
+
+<!-- ── BIRTHDAY SPLASH ─────────────────────────────────── -->
+<div id="bday-splash">
+    <div class="bday-msg">&#127881; HAPPY BIRTHDAY<br>NANCY &#127881;</div>
+    <div class="bday-sub">13 SEPTEMBER &mdash; A LIFE WELL TRAVELLED</div>
+    <div class="bday-yrs" id="bday-years-line"></div>
+    <button id="bday-close" onclick="closeBday()">CONTINUE JOURNEY &#10132;</button>
+</div>
+
+<!-- ── HEADER ─────────────────────────────────────────── -->
+<header>
+    <div>
+        <div class="h-status">STATUS: <span id="status-text">ACTIVE</span></div>
+        <div class="h-stars">STARS: <span id="star-count">0</span></div>
+    </div>
+    <div class="toolbar">
+        <button class="tb-btn" id="pause-btn">&#9646;&#9646;</button>
+        <button class="tb-btn gold" id="safe-btn">SAFE</button>
+        <button class="tb-btn gold" id="add-btn">+ADD</button>
+    </div>
+</header>
+
+<div class="speed-row">
+    <label>SPEED</label>
+    <input type="range" id="speed-slider" min="1" max="10" value="3">
+    <span class="speed-val" id="speed-val">3</span>
+</div>
+
+<!-- ── ODOMETER ─────────────────────────────────────── -->
+<div class="odometer" id="year-display">1976</div>
+<div class="days-since" id="days-since">&nbsp;</div>
+
+<!-- ── CLOCKS ─────────────────────────────────────────── -->
+<div class="clock-container">
+    <div class="city-box">
+        <div class="city-left">
+            <div class="city-name">AMRITSAR</div>
+            <div id="amritsar-date" class="city-date">--</div>
+        </div>
+        <div id="amritsar-time" class="city-time">--:--</div>
+    </div>
+    <div class="city-box">
+        <div class="city-left">
+            <div class="city-name">MONTREAL</div>
+            <div id="montreal-date" class="city-date">--</div>
+        </div>
+        <div id="montreal-time" class="city-time">--:--</div>
+    </div>
+    <div class="city-box">
+        <div class="city-left">
+            <div class="city-name">SEATTLE</div>
+            <div id="seattle-date" class="city-date">--</div>
+        </div>
+        <div id="seattle-time" class="city-time">--:--</div>
+    </div>
+</div>
+
+<!-- ── CULTURAL EVENTS PANEL ─────────────────────────── -->
+<div class="panel gold">
+    <div class="panel-hdr">
+        <span>&#9900; CULTURAL &amp; PERSONAL</span>
+        <span id="event-count">0</span>
+    </div>
+    <ul class="ev-list" id="event-list"></ul>
+</div>
+
+<!-- ── CATEGORY SELECTOR ─────────────────────────────── -->
+<div class="cat-row" id="cat-bar"></div>
+
+<!-- ── WORLD EVENTS PANEL ───────────────────────────── -->
+<div class="panel cyan">
+    <div class="panel-hdr">
+        <span>&#9900; WORLD EVENTS</span>
+        <span id="we-count">0</span>
+    </div>
+    <ul class="ev-list" id="world-list"></ul>
+</div>
+
+<!-- ── MILESTONE FORM ───────────────────────────────── -->
+<button class="ms-toggle" onclick="toggleMs()">+ ADD YOUR OWN MILESTONES</button>
+<div class="ms-panel" id="ms-panel">
+    <div class="ms-form">
+        <div class="ms-g"><label>DATE</label><input type="date" id="ms-date"></div>
+        <div class="ms-g"><label>DESCRIPTION</label>
+            <input type="text" id="ms-text" placeholder="e.g. Graduation day" maxlength="80"></div>
+        <button class="ms-add" onclick="addMilestone()">SAVE MILESTONE &#10132;</button>
+    </div>
+    <div class="ms-error" id="ms-error"></div>
+    <ul class="ms-saved" id="ms-saved"></ul>
+</div>
+
+<script>
+// ── CONFIGURATION ───────────────────────────────────────
+const BORN = new Date(1976, 8, 13);
+const endDate = new Date();
+let simDate = new Date(1976, 8, 13);
+let paused = false, safeMode = false, daysPerFrame = 3;
+let stars = [];
+let userMilestones = [];
+let eventTotal = 0;
+let bdayShown = false;
+let confettiActive = false;
+let confettiParticles = [];
+let pulseTimer = null;
+let selectedCat = 'all';
+
+// ── CULTURAL CALENDAR ───────────────────────────────────
+const culturalCalendar = [
+    // Personal Milestones
+    { year:1976, month:8,  day:13, event:"Nancy born in Amritsar, India", personal:true, bday:true },
+    { year:1978, month:0,  day:1,  event:"Nancy's family moves to Montreal, Canada", personal:true },
+    { year:1998, month:0,  day:1,  event:"Nancy moves to Toronto, Ontario", personal:true },
+    { year:1999, month:11, day:1,  event:"Nancy married in Mississauga, Ontario", personal:true },
+    { year:1999, month:11, day:15, event:"Honeymoon in Quebec City & Lake Placid", personal:true },
+    { year:2000, month:0,  day:1,  event:"Rented in King of Prussia, Pennsylvania", personal:true },
+    { year:2000, month:6,  day:1,  event:"Rented in Philadelphia, Pennsylvania", personal:true },
+    { year:2000, month:9,  day:1,  event:"Became homeowners in East Windsor, New Jersey", personal:true },
+    { year:2001, month:8,  day:15, event:"Baby Simika born in Princeton, New Jersey", personal:true },
+    { year:2004, month:5,  day:21, event:"Baby Rianna born in Jersey City, New Jersey", personal:true },
+    { year:2005, month:0,  day:1,  event:"Owned home in Brampton, Ontario", personal:true },
+    { year:2007, month:0,  day:1,  event:"Owned home in Kitchener, Ontario", personal:true },
+    { year:2012, month:0,  day:1,  event:"Rented in San Jose, California", personal:true },
+    { year:2013, month:0,  day:1,  event:"Rented in Bellevue, Washington", personal:true },
+    { year:2014, month:0,  day:1,  event:"Owned home in Issaquah, Washington", personal:true },
+    { year:2017, month:0,  day:1,  event:"Rented in Snoqualmie, Washington", personal:true },
+    { year:2018, month:0,  day:1,  event:"Rented in Chelan, Washington", personal:true },
+    { year:2019, month:0,  day:1,  event:"Rented in Burien, Washington", personal:true },
+    { year:2021, month:0,  day:1,  event:"Searching for forever retirement home", personal:true },
+    
+    // Career Milestones
+    { year:2000, month:0,  day:1,  event:"Started at Computer Sciences Corporation (CSC) as Business Analyst/Consultant", personal:true },
+    { year:2005, month:11, day:1,  event:"Left CSC after 5 years", personal:true },
+    { year:2008, month:0,  day:1,  event:"Joined BlackBerry as Business Systems Analyst in Waterloo, Ontario", personal:true },
+    { year:2012, month:11, day:1,  event:"Left BlackBerry after 4 years", personal:true },
+    { year:2012, month:0,  day:1,  event:"Joined City of Kitchener as Business Analyst", personal:true },
+    { year:2015, month:11, day:1,  event:"Left City of Kitchener after 3 years", personal:true },
+    { year:2016, month:0,  day:1,  event:"Joined City of Seattle as Strategic Advisor", personal:true },
+    { year:2017, month:10, day:1,  event:"Joined Puget Sound Energy as IT Business Advisor", personal:true },
+    { year:2020, month:11, day:1,  event:"Retired from Puget Sound Energy after 3+ years", personal:true },
+    
+    // Family Annual Events
+    { month:8,  day:15, event:"Simika's Birthday", personal:true },
+    { month:5,  day:21, event:"Rianna's Birthday", personal:true },
+    { month:11, day:1,  event:"Wedding Anniversary", personal:true },
+    
+    // Indian Cultural Events
+    { month:0,  day:14, event:"Pongal / Makar Sankranti — Harvest Festival" },
+    { month:0,  day:26, event:"Republic Day of India" },
+    { month:2,  day:14, event:"Holi — Festival of Colors" },
+    { month:2,  day:25, event:"Ram Navami — Lord Rama's Birthday" },
+    { month:3,  day:13, event:"Vaisakhi — Sikh New Year & Birth of Khalsa" },
+    { month:3,  day:14, event:"Dr. B.R. Ambedkar Jayanti" },
+    { month:4,  day:1,  event:"Maharashtra Day / Gujarat Day" },
+    { month:7,  day:15, event:"Independence Day of India" },
+    { month:7,  day:31, event:"Raksha Bandhan — Brother-Sister Festival" },
+    { month:8,  day:2,  event:"Janmashtami — Lord Krishna's Birthday" },
+    { month:9,  day:2,  event:"Gandhi Jayanti — Mahatma Gandhi's Birthday" },
+    { month:9,  day:24, event:"Dussehra — Victory of Good over Evil" },
+    { month:10, day:4,  event:"Diwali — Festival of Lights" },
+    { month:10, day:5,  event:"Govardhan Puja" },
+    { month:10, day:6,  event:"Bhai Dooj — Brother-Sister Festival" },
+    { month:11, day:25, event:"Christmas Day" },
+    
+    // Canadian Cultural Events
+    { month:0,  day:1,  event:"New Year's Day" },
+    { month:1,  day:15, event:"Family Day (Canada)" },
+    { month:2,  day:17, event:"Saint Patrick's Day" },
+    { month:4,  day:20, event:"Victoria Day (Canada)" },
+    { month:6,  day:1,  event:"Canada Day" },
+    { month:8,  day:2,  event:"Labour Day (Canada)" },
+    { month:9,  day:9,  event:"Thanksgiving (Canada)" },
+    { month:10, day:11, event:"Remembrance Day (Canada)" },
+];
+
+// ── WORLD EVENTS (1976+) ────────────────────────────────
+const worldEvents = [
+    { y:1977,m:5, d:25,cat:"culture", t:"Star Wars released \u2014 cinema changed forever" },
+    { y:1978,m:7, d:25,cat:"science", t:"World's first IVF baby born \u2014 Louise Brown" },
+    { y:1979,m:12,d:24,cat:"war",     t:"Soviet invasion of Afghanistan begins" },
+    { y:1980,m:5, d:8, cat:"science", t:"WHO declares smallpox eradicated" },
+    { y:1981,m:8, d:12,cat:"tech",    t:"IBM Personal Computer launched" },
+    { y:1983,m:7, d:11,cat:"sport",   t:"India win Cricket World Cup under Kapil Dev" },
+    { y:1984,m:10,d:25,cat:"culture", t:"Band Aid records Do They Know It\u2019s Christmas?" },
+    { y:1985,m:7, d:13,cat:"culture", t:"Live Aid concert \u2014 $150M raised for famine relief" },
+    { y:1989,m:3, d:12,cat:"tech",    t:"Tim Berners-Lee proposes the World Wide Web" },
+    { y:1989,m:11,d:9, cat:"politics",t:"Berlin Wall falls" },
+    { y:1990,m:2, d:11,cat:"politics",t:"Nelson Mandela freed after 27 years" },
+    { y:1990,m:4, d:25,cat:"space",   t:"Hubble Space Telescope deployed" },
+    { y:1991,m:8, d:6, cat:"tech",    t:"World Wide Web goes public" },
+    { y:1991,m:12,d:25,cat:"politics",t:"Soviet Union dissolves \u2014 Cold War ends" },
+    { y:1994,m:4, d:27,cat:"politics",t:"South Africa first democratic election \u2014 Mandela elected" },
+    { y:1996,m:7, d:5, cat:"science", t:"Dolly the sheep cloned \u2014 first mammal from adult cell" },
+    { y:1997,m:7, d:1, cat:"politics",t:"Hong Kong handover to China" },
+    { y:1998,m:9, d:4, cat:"tech",    t:"Google founded" },
+    { y:2000,m:6, d:26,cat:"science", t:"Human Genome Project draft complete" },
+    { y:2001,m:9, d:11,cat:"war",     t:"9/11 attacks \u2014 world changed" },
+    { y:2003,m:11,d:22,cat:"sport",   t:"England win Rugby World Cup" },
+    { y:2004,m:12,d:26,cat:"nature",  t:"Indian Ocean tsunami \u2014 global aid mobilised" },
+    { y:2007,m:1, d:9, cat:"tech",    t:"Apple iPhone announced \u2014 smartphone revolution" },
+    { y:2008,m:11,d:4, cat:"politics",t:"Barack Obama elected \u2014 first Black US president" },
+    { y:2011,m:4, d:2, cat:"sport",   t:"India win Cricket World Cup on home soil" },
+    { y:2012,m:7, d:4, cat:"science", t:"Higgs Boson particle discovered at CERN" },
+    { y:2019,m:4, d:10,cat:"science", t:"First photograph of a black hole" },
+    { y:2020,m:1, d:30,cat:"nature",  t:"COVID-19 declared global emergency" },
+    { y:2021,m:2, d:18,cat:"space",   t:"Perseverance rover lands on Mars" },
+    { y:2021,m:12,d:25,cat:"space",   t:"James Webb Space Telescope launched" },
+    { y:2022,m:9, d:8, cat:"culture", t:"Queen Elizabeth II dies after 70-year reign" },
+    { y:2022,m:11,d:30,cat:"tech",    t:"ChatGPT released \u2014 AI era goes mainstream" },
+    { y:2023,m:8, d:23,cat:"space",   t:"Chandrayaan-3 \u2014 India lands on Moon\u2019s south pole" },
+];
+
+const catMeta = {
+    all:     { label:"ALL",      color:"#00e8ff" },
+    war:     { label:"WAR",      color:"#ff7070" },
+    politics:{ label:"POLITICS", color:"#a29bfe" },
+    science: { label:"SCIENCE",  color:"#55efc4" },
+    space:   { label:"SPACE",    color:"#74b9ff" },
+    tech:    { label:"TECH",     color:"#fdcb6e" },
+    sport:   { label:"SPORT",    color:"#fd79a8" },
+    culture: { label:"CULTURE",  color:"#e17055" },
+    nature:  { label:"NATURE",   color:"#00b894" },
+};
+
+// ── CANVAS SETUP ───────────────────────────────────────
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+const confetti = document.getElementById('confetti-canvas');
+const cctx = confetti.getContext('2d');
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    confetti.width = window.innerWidth;
+    confetti.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Initialize stars
+for (let i = 0; i < 600; i++) {
+    stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        z: Math.random() * canvas.width,
+        o: Math.random() * 0.8 + 0.2
+    });
+}
+
+function draw() {
+    ctx.fillStyle = '#020205';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(star => {
+        const x = (star.x - canvas.width / 2) * (canvas.width / star.z) + canvas.width / 2;
+        const y = (star.y - canvas.height / 2) * (canvas.width / star.z) + canvas.height / 2;
+        const size = (1 - star.z / canvas.width) * 3;
+        if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
+            const brightness = star.o * (1 - star.z / canvas.width);
+            ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        star.z -= 2;
+        if (star.z <= 0) {
+            star.x = Math.random() * canvas.width;
+            star.y = Math.random() * canvas.height;
+            star.z = canvas.width;
+        }
+    });
+    requestAnimationFrame(draw);
+}
+
+// ── CATEGORY UI ─────────────────────────────────────────
+function initCatUI() {
+    const bar = document.getElementById('cat-bar');
+    Object.entries(catMeta).forEach(([key, meta]) => {
+        const btn = document.createElement('button');
+        btn.className = 'cat-chip' + (key === 'all' ? ' active' : '');
+        btn.textContent = meta.label;
+        btn.style.setProperty('--cat-color', meta.color);
+        btn.addEventListener('click', () => {
+            selectedCat = key;
+            document.querySelectorAll('.cat-chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+        bar.appendChild(btn);
+    });
+}
+
+// ── EVENT CHECKING ─────────────────────────────────────
+function checkCulturalEvent(date) {
+    const m = date.getMonth();
+    const d = date.getDate();
+    const y = date.getFullYear();
+    
+    culturalCalendar.filter(e => {
+        const yMatch = e.year === undefined || e.year === y;
+        return e.month === m && e.day === d && yMatch;
+    }).forEach(evt => {
+        logEvent(evt, date);
+        if (!safeMode) triggerPulse();
+        if (evt.bday && !bdayShown) triggerBirthday(date);
+    });
+    
+    userMilestones.filter(e => {
+        return e.y === y && e.m === m + 1 && e.d === d;
+    }).forEach(evt => {
+        logEvent(evt, date);
+        if (!safeMode) triggerPulse();
+    });
+}
+
+function checkWorldEvent(date) {
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    
+    worldEvents.filter(e => e.y === y && e.m === m && e.d === d).forEach(evt => {
+        if (selectedCat === 'all' || selectedCat === evt.cat) {
+            logWorldEvent(evt, date);
+        }
+    });
+}
+
+function logEvent(evt, date) {
+    const li = document.createElement('li');
+    const ds = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const cls = evt.personal ? 'ev-text ev-personal' : 'ev-text';
+    li.innerHTML = '<span class="ev-date">' + ds + '</span><span class="' + cls + '">' + evt.event + '</span>';
+    document.getElementById('event-list').insertBefore(li, document.getElementById('event-list').firstChild);
+    eventTotal++;
+    document.getElementById('event-count').textContent = eventTotal;
+    while (document.getElementById('event-list').children.length > 50) {
+        document.getElementById('event-list').removeChild(document.getElementById('event-list').lastChild);
+    }
+}
+
+function logWorldEvent(evt, date) {
+    const li = document.createElement('li');
+    const ds = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const col = (catMeta[evt.cat] || catMeta.all).color;
+    const tag = (catMeta[evt.cat] || catMeta.all).label;
+    li.innerHTML = '<span class="ev-date">' + ds + '</span>' +
+        '<span class="we-tag" style="color:' + col + ';border-color:' + col + '22">' + tag + '</span>' +
+        '<span class="we-text">' + evt.t + '</span>';
+    document.getElementById('world-list').insertBefore(li, document.getElementById('world-list').firstChild);
+    const count = document.getElementById('world-list').children.length;
+    document.getElementById('we-count').textContent = count;
+    while (document.getElementById('world-list').children.length > 50) {
+        document.getElementById('world-list').removeChild(document.getElementById('world-list').lastChild);
+    }
+}
+
+// ── BIRTHDAY ───────────────────────────────────────────
+function triggerBirthday(date) {
+    if (bdayShown) return;
+    bdayShown = true;
+    paused = true;
+    document.getElementById('pause-btn').innerHTML = '&#9654;';
+    document.getElementById('pause-btn').classList.add('active');
+    document.getElementById('status-text').textContent = 'BIRTHDAY!';
+    
+    const ms = date - BORN;
+    const years = Math.floor(ms / (365.25 * 86400000));
+    const days = Math.floor(ms / 86400000);
+    document.getElementById('bday-years-line').textContent =
+        years + ' YEARS  \u2022  ' + days.toLocaleString() + ' DAYS AROUND THE SUN';
+    
+    document.getElementById('bday-splash').classList.add('show');
+    if (!safeMode) startConfetti();
+}
+
+function closeBday() {
+    document.getElementById('bday-splash').classList.remove('show');
+    paused = false;
+    document.getElementById('pause-btn').innerHTML = '&#9646;&#9646;';
+    document.getElementById('pause-btn').classList.remove('active');
+    document.getElementById('status-text').textContent = 'ACTIVE';
+    confettiActive = false;
+}
+
+// ── CONFETTI ───────────────────────────────────────────
+const CONFETTI_COLORS = ['#ffc94a', '#00e8ff', '#ffffff', '#ff9f43', '#a29bfe', '#55efc4'];
+function startConfetti() {
+    confettiActive = true;
+    confettiParticles = Array.from({ length: 100 }, () => ({
+        x: Math.random() * confetti.width,
+        y: Math.random() * confetti.height - confetti.height,
+        w: Math.random() * 8 + 4, h: Math.random() * 4 + 3,
+        color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+        speed: Math.random() * 3 + 1.5,
+        angle: Math.random() * 360,
+        spin: (Math.random() - .5) * 4,
+        drift: (Math.random() - .5) * 1.2
+    }));
+    animateConfetti();
+}
+
+function animateConfetti() {
+    if (!confettiActive) { cctx.clearRect(0, 0, confetti.width, confetti.height); return; }
+    cctx.clearRect(0, 0, confetti.width, confetti.height);
+    confettiParticles.forEach(p => {
+        p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+        if (p.y > confetti.height + 10) {
+            p.y = -10; p.x = Math.random() * confetti.width;
+        }
+        cctx.save();
+        cctx.translate(p.x, p.y);
+        cctx.rotate(p.angle * Math.PI / 180);
+        cctx.fillStyle = p.color;
+        cctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        cctx.restore();
+    });
+    requestAnimationFrame(animateConfetti);
+}
+
+// ── PULSE ─────────────────────────────────────────────
+function triggerPulse() {
+    if (pulseTimer) clearTimeout(pulseTimer);
+    document.getElementById('pulse-overlay').classList.add('pulse-active');
+    pulseTimer = setTimeout(() => document.getElementById('pulse-overlay').classList.remove('pulse-active'), 1400);
+}
+
+// ── CLOCKS ─────────────────────────────────────────────
+function updateClocks(date) {
+    const cities = [
+        { name: 'amritsar', offset: 5.5 },
+        { name: 'montreal', offset: -4 },
+        { name: 'seattle', offset: -7 }
+    ];
+    cities.forEach(city => {
+        const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+        const cityTime = new Date(utc + (3600000 * city.offset));
+        const dateEl = document.getElementById(city.name + '-date');
+        const timeEl = document.getElementById(city.name + '-time');
+        if (dateEl && timeEl) {
+            dateEl.textContent = cityTime.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            timeEl.textContent = cityTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        }
+    });
+}
+
+// ── CONTROLS ───────────────────────────────────────────
+document.getElementById('pause-btn').addEventListener('click', function() {
+    paused = !paused;
+    this.innerHTML = paused ? '&#9654;' : '&#9646;&#9646;';
+    this.classList.toggle('active', paused);
+    document.getElementById('status-text').textContent = paused ? 'PAUSED' : 'ACTIVE';
+});
+
+document.getElementById('safe-btn').addEventListener('click', function() {
+    safeMode = !safeMode;
+    this.classList.toggle('active', safeMode);
+    this.textContent = safeMode ? 'SAFE ON' : 'SAFE';
+    if (safeMode) {
+        document.getElementById('pulse-overlay').style.transition = 'none';
+        document.getElementById('pulse-overlay').style.opacity = '0';
+        document.getElementById('pulse-overlay').classList.remove('pulse-active');
+    } else {
+        document.getElementById('pulse-overlay').style.transition = 'opacity 1.4s ease-out';
+    }
+});
+
+document.getElementById('speed-slider').addEventListener('input', function(e) {
+    daysPerFrame = parseInt(e.target.value);
+    document.getElementById('speed-val').textContent = daysPerFrame;
+});
+
+document.getElementById('add-btn').addEventListener('click', function() {
+    document.getElementById('ms-panel').classList.toggle('open');
+    this.classList.toggle('active', document.getElementById('ms-panel').classList.contains('open'));
+});
+
+// ── MILESTONE FORM ───────────────────────────────────
+function toggleMs() {
+    document.getElementById('ms-panel').classList.toggle('open');
+}
+
+function addMilestone() {
+    const dateInput = document.getElementById('ms-date');
+    const textInput = document.getElementById('ms-text');
+    const errorDiv = document.getElementById('ms-error');
+    
+    if (!dateInput.value || !textInput.value.trim()) {
+        errorDiv.textContent = 'Please fill in both date and description';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    const d = new Date(dateInput.value);
+    if (isNaN(d.getTime()) || d < BORN) {
+        errorDiv.textContent = 'Please enter a valid date on or after your birth';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    userMilestones.push({
+        y: d.getFullYear(),
+        m: d.getMonth() + 1,
+        d: d.getDate(),
+        event: textInput.value.trim(),
+        personal: true
+    });
+    
+    const li = document.createElement('li');
+    li.innerHTML = '<span>' + dateInput.value + ' — ' + textInput.value.trim() + '</span>' +
+        '<button class="ms-del" onclick="removeMilestone(' + (userMilestones.length - 1) + ')">&times;</button>';
+    document.getElementById('ms-saved').appendChild(li);
+    
+    dateInput.value = '';
+    textInput.value = '';
+    errorDiv.style.display = 'none';
+}
+
+function removeMilestone(index) {
+    userMilestones.splice(index, 1);
+    const list = document.getElementById('ms-saved');
+    list.removeChild(list.children[index]);
+}
+
+// ── MAIN SIMULATION ───────────────────────────────────
+function simulate() {
+    if (!paused) {
+        for (let i = 0; i < daysPerFrame; i++) {
+            simDate.setDate(simDate.getDate() + 1);
+            checkCulturalEvent(simDate);
+            checkWorldEvent(simDate);
+            
+            const daysLived = Math.floor((simDate - BORN) / (1000 * 60 * 60 * 24));
+            document.getElementById('year-display').textContent = simDate.getFullYear();
+            document.getElementById('days-since').textContent = daysLived.toLocaleString() + ' DAYS AROUND THE SUN';
+            document.getElementById('star-count').textContent = daysLived.toLocaleString();
+            updateClocks(simDate);
+            
+            if (simDate >= endDate) {
+                simDate = new Date(endDate);
+                break;
+            }
+        }
+    }
+    setTimeout(simulate, 50);
+}
+
+// ── START ─────────────────────────────────────────────
+initCatUI();
+draw();
+simulate();
+</script>
+</body>
+</html>
