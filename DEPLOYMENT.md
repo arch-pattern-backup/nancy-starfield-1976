@@ -49,7 +49,7 @@ If you want to use a custom domain like `nancy.patternfoundry.dev`:
 
 - `index.html` - Main entry page with device detection
 - `starfield.html` - Full desktop version
-- `starfield-dad.html` - Nancy Mode (big text, recommended)
+- `starfield-nancy.html` - Nancy Mode (big text, recommended)
 - `starfield-mobile.html` - Mobile-optimized version
 - `README.md` - Complete documentation
 
@@ -67,7 +67,7 @@ Nancy can add her own milestones using the "+ ADD MILESTONE" button in any versi
 - **Files Deployed**:
   - `index.html` - Main entry page with device detection
   - `starfield.html` - Full desktop version
-  - `starfield-dad.html` - Nancy Mode (big text, recommended)
+  - `starfield-nancy.html` - Nancy Mode (big text, recommended)
   - `starfield-mobile.html` - Mobile-optimized version
   - `README.md` - Complete documentation
   - `.nojekyll` - Bypass Jekyll processing
