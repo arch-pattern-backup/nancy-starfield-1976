@@ -18,32 +18,50 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 #crawl-stage{
   position:fixed;inset:0;z-index:10;
   display:flex;flex-direction:column;
-  align-items:center;justify-content:flex-end;
+  align-items:center;
   overflow:hidden;
-  /* the perspective plane */
-  perspective:350px;
-  perspective-origin:50% 100%;
+}
+
+/* Karaoke display */
+#karaoke-display{
+  position:fixed;
+  top:5%;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:clamp(1.5rem,3vw,2.5rem);
+  font-weight:700;
+  letter-spacing:3px;
+  color:var(--gold);
+  text-shadow:0 0 20px rgba(255,180,0,.8),0 0 40px rgba(255,230,100,.4);
+  text-align:center;
+  z-index:25;
+  opacity:0.3;
+  transition:opacity 0.3s ease;
+  max-width:80%;
+  line-height:1.4;
+  background:rgba(0,0,0,0.7);
+  padding:15px 25px;
+  border-radius:10px;
+  border:1px solid rgba(255,180,0,0.3);
 }
 
 /* fade-to-black at top */
 #crawl-stage::before{
   content:'';position:absolute;
-  top:0;left:0;right:0;height:35%;
+  top:0;left:0;right:0;height:25%;
   background:linear-gradient(to bottom,#020205 40%,transparent);
   z-index:20;pointer-events:none;
 }
 
 #crawl-body{
-  width:56%;max-width:900px;
-  transform-origin:50% 100%;
-  transform:rotateX(25deg);
+  width:90%;max-width:1400px;
   animation:crawl var(--crawl-dur,120s) linear forwards;
   padding-bottom:100vh;
 }
 
 @keyframes crawl{
-  from{transform:rotateX(25deg) translateY(0);}
-  to  {transform:rotateX(25deg) translateY(-100%);}
+  from{transform:translateY(100vh);}
+  to  {transform:translateY(-150%);}
 }
 
 /* "A long time ago…" cold open */
@@ -52,14 +70,14 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   background:black;
-  animation:coldFade 5s ease forwards;
-  animation-delay:0.5s;
   opacity:1;
+  cursor:pointer;
+}
+#cold-open.hidden{
+  animation:coldFade 1s ease forwards;
 }
 @keyframes coldFade{
-  0%  {opacity:1;}
-  60% {opacity:1;}
-  100%{opacity:0;pointer-events:none;}
+  to{opacity:0;pointer-events:none;}
 }
 #cold-open p{
   font-size:clamp(.9rem,2vw,1.4rem);
@@ -71,7 +89,7 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 /* Title card */
 .crawl-title{
   text-align:center;
-  font-size:clamp(2rem,5vw,4rem);
+  font-size:clamp(6rem,15vw,12rem);
   font-weight:700;letter-spacing:10px;
   color:var(--gold);
   text-shadow:0 0 40px rgba(255,180,0,.8);
@@ -82,7 +100,7 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 /* Body paragraphs */
 .crawl-body{
   text-align:justify;
-  font-size:clamp(1rem,2.2vw,1.6rem);
+  font-size:clamp(3rem,6vw,5rem);
   line-height:1.9;
   letter-spacing:2px;
   color:#ffe8aa;
@@ -103,7 +121,7 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 /* Mehr spotlight section */
 .mehr-word{
   text-align:center;
-  font-size:clamp(2rem,5vw,3.5rem);
+  font-size:clamp(5rem,12vw,9rem);
   font-weight:700;letter-spacing:12px;
   color:#ffffff;
   text-shadow:0 0 30px rgba(255,255,200,.8),0 0 60px rgba(255,230,100,.4);
@@ -111,7 +129,7 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 }
 .mehr-lines{
   text-align:center;
-  font-size:clamp(.9rem,2vw,1.4rem);
+  font-size:clamp(2.5rem,5vw,4rem);
   line-height:2.2;letter-spacing:3px;
   color:#d0eeff;
   margin-bottom:2em;
@@ -121,7 +139,7 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 /* Day count */
 .day-count{
   text-align:center;
-  font-size:clamp(1.4rem,3.5vw,3rem);
+  font-size:clamp(4rem,8vw,7rem);
   font-weight:700;letter-spacing:6px;
   color:#ffffff;
   text-shadow:0 0 20px var(--glow);
@@ -129,7 +147,7 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 }
 .year-count{
   text-align:center;
-  font-size:clamp(1rem,2.5vw,2rem);
+  font-size:clamp(3rem,6vw,5rem);
   letter-spacing:5px;color:#00e8ff;
   margin-bottom:2.4em;
 }
@@ -137,7 +155,7 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 /* Sign-off */
 .sign-off{
   text-align:center;
-  font-size:clamp(1.2rem,3vw,2.2rem);
+  font-size:clamp(3rem,6vw,5rem);
   font-weight:700;letter-spacing:6px;
   color:var(--gold);
   text-shadow:0 0 20px rgba(255,180,0,.7);
@@ -146,18 +164,13 @@ canvas#stars{position:fixed;inset:0;z-index:0;}
 }
 .sign-name{
   text-align:center;
-  font-size:clamp(.9rem,2vw,1.5rem);
+  font-size:clamp(2rem,4vw,3.5rem);
   letter-spacing:5px;color:#fff;
   font-style:italic;margin-top:.6em;
 }
 
 /* "Press any key" hint */
-#skip-hint{
-  position:fixed;bottom:24px;right:32px;z-index:40;
-  font-size:.65rem;letter-spacing:3px;color:rgba(255,255,255,.25);
-  animation:blink 2.5s ease-in-out infinite;
-  pointer-events:none;
-}
+
 @keyframes blink{0%,100%{opacity:.2;}50%{opacity:.6;}}
 
 /* ═══════════════════════════════════════════════
@@ -296,9 +309,18 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 <canvas id="confetti-canvas" style="position:fixed;inset:0;z-index:199;pointer-events:none;"></canvas>
 <div id="pulse-overlay"></div>
 
+<!-- Audio for birthday crawl -->
+<audio id="birthday-audio">
+  <source src="https://audio.patternfoundry.systems/hot/39ddf675-dc54-4a00-87e3-9a0aa71f77c5.ogg" type="audio/ogg">
+</audio>
+
+<!-- Karaoke lyrics display -->
+<div id="karaoke-display"></div>
+
 <!-- ── COLD OPEN ── -->
 <div id="cold-open">
   <p>A long time ago,<br>in a land far, far away&hellip;</p>
+  <p style="margin-top:2rem;font-size:clamp(1rem,2vw,1.5rem);color:#fff;animation:blink 2s ease-in-out infinite;">Click anywhere to begin</p>
 </div>
 
 <!-- ── CRAWL ── -->
@@ -307,31 +329,32 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
 
     <div class="crawl-title">STARFIELD<br>1976</div>
 
-    <p class="crawl-body">
-      In Amritsar, in the year nineteen seventy-six,
-      a life began that would span continents,
-      careers, and countless adventures.
+    <p class="crawl-body" style="text-align:center;">
+      In Amritsar's light, a star was born,<br>
+      Nineteen seventy-six, a golden morn.<br>
+      A life began to span the earth,<br>
+      From first breath to journeys worth.
     </p>
 
-    <p class="crawl-body">
-      From the golden fields of Punjab
-      to the snowy streets of Montreal,
-      you carried your family's dreams
-      across oceans and borders.
+    <p class="crawl-body" style="text-align:center;">
+      From Punjab's fields to Montreal's snow,<br>
+      Across the oceans, dreams would flow.<br>
+      You carried hope on winds so wide,<br>
+      A bridge between worlds, side by side.
     </p>
 
-    <p class="crawl-body">
-      You built a career in business analysis,
-      navigating complex systems at CSC, BlackBerry,
-      the City of Kitchener, the City of Seattle,
-      and Puget Sound Energy.
+    <p class="crawl-body" style="text-align:center;">
+      Through systems complex, you found your way,<br>
+      At CSC, BlackBerry, day by day.<br>
+      From Kitchener's halls to Seattle's call,<br>
+      Puget Sound Energy, standing tall.
     </p>
 
-    <p class="crawl-body">
-      You created a beautiful family &mdash;
-      welcoming Simika in 2001 and Rianna in 2004,
-      and building a life with your husband
-      through eighteen relocations across North America.
+    <p class="crawl-body" style="text-align:center;">
+      Two hearts became one, then three, then four,<br>
+      Simika's smile, Rianna's adore.<br>
+      Eighteen homes across the land,<br>
+      Hand in hand, you made your stand.
     </p>
 
     <hr class="crawl-rule">
@@ -339,64 +362,69 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
     <div class="mehr-word">JOURNEY</div>
 
     <div class="mehr-lines">
-      From childhood in Montreal to adulthood in Toronto.<br>
-      From newlywed days in Mississauga<br>
-      to homeownership in New Jersey.<br>
-      From Canadian winters to Pacific Northwest rain.
+      Montreal's child to Toronto's grace,<br>
+      Mississauga's love, a warm embrace.<br>
+      New Jersey's home, then westward bound,<br>
+      Pacific rain, new life found.
     </div>
 
     <div class="mehr-lines">
-      Every move was a new chapter.<br>
-      Every city became home.<br>
-      Every challenge became opportunity.
+      Each move, a chapter, fresh and new,<br>
+      Each city, home, for me and you.<br>
+      Each challenge, chance to rise and grow,<br>
+      Through every change, your heart would glow.
     </div>
 
     <div class="mehr-lines">
-      You have navigated change with grace,<br>
-      built bridges between cultures,<br>
-      and created warmth wherever you go.
+      With grace you danced through time and space,<br>
+      Building bridges, embracing grace.<br>
+      Creating warmth where'er you roam,<br>
+      Making every place feel like home.
     </div>
 
     <hr class="crawl-rule">
 
-    <p class="crawl-body">
-      Now you have retired from a remarkable career,
-      and you are searching for your forever home.
+    <p class="crawl-body" style="text-align:center;">
+      Now from career, you take your bow,<br>
+      Searching for forever now.<br>
+      A place to rest, a place to be,<br>
+      The perfect home for you and me.
     </p>
 
-    <p class="crawl-body">
-      But the most important home
-      has always been the one you carry with you &mdash;
-      the love of family, the memories of journeys,
-      and the resilience that defines you.
+    <p class="crawl-body" style="text-align:center;">
+      But home was never just a place,<br>
+      It's love and time and warm embrace.<br>
+      The family bonds that hold so tight,<br>
+      The memories that guide your light.
     </p>
 
-    <p class="crawl-body">
-      From Amritsar to Seattle,
-      you have traveled far.
-      But your heart has never left home.
+    <p class="crawl-body" style="text-align:center;">
+      From Amritsar's dawn to Seattle's night,<br>
+      You've traveled far, but kept your light.<br>
+      For home resides within your soul,<br>
+      The love that makes you whole.
     </p>
 
     <hr class="crawl-rule">
 
     <p class="crawl-body" style="text-align:center;">
-      Every star in this field<br>
-      is one day of your life.
+      Each star above, a day you've known,<br>
+      Eighteen thousand, two hundred, sixty-three.<br>
+      Fifty years of love and light,<br>
+      Every single one, yours to brighten.
     </p>
 
-    <div class="day-count" id="crawl-days">17,887 DAYS</div>
-    <div class="year-count">FORTY-NINE YEARS &nbsp;&bull;&nbsp; EVERY ONE OF THEM YOURS</div>
+    <div class="day-count" id="crawl-days">18,263 DAYS</div>
+    <div class="year-count">FIFTY YEARS &nbsp;&bull;&nbsp; EVERY ONE OF THEM YOURS</div>
 
     <div class="sign-off">
-      Happy Birthday, Nancy.<br>
-      We love you.
+      Happy Birthday, Nancy dear,<br>
+      Our love for you is always near.
     </div>
     <div class="sign-name">&mdash; With love from your family</div>
 
   </div><!-- /crawl-body -->
 </div><!-- /crawl-stage -->
-
-<div id="skip-hint">TAP TO BEGIN &nbsp;&#9654;</div>
 
 <!-- ── SIMULATION UI ── -->
 <div id="sim-ui">
@@ -477,30 +505,120 @@ const endDate = new Date();
 
 // ── Set day count in crawl ─────────────────────────────────────────
 (function(){
-  const ms = new Date(2025,8,13) - BORN;
+  const ms = new Date(2026,8,13) - BORN;
   const days = Math.floor(ms/86400000);
   document.getElementById('crawl-days').textContent =
     days.toLocaleString() + ' DAYS';
 })();
 
 // ── Crawl timing & skip ───────────────────────────────────────────
-const CRAWL_DUR = 110; // seconds
+const CRAWL_DUR = 120; // seconds (matches audio duration)
 document.documentElement.style.setProperty('--crawl-dur', CRAWL_DUR+'s');
 
 let crawlDone = false;
+let audioStarted = false;
+
 function beginSim(){
   if(crawlDone) return; crawlDone = true;
   document.getElementById('crawl-stage').style.display = 'none';
   document.getElementById('cold-open').style.display  = 'none';
-  document.getElementById('skip-hint').style.display  = 'none';
   document.getElementById('sim-ui').classList.add('show');
+  
+  // Stop audio when simulation starts
+  const audio = document.getElementById('birthday-audio');
+  if(audio) {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+  
+  // Hide karaoke display
+  hideKaraoke();
+  
   startSimLoop();
 }
 
-// Skip on tap / key
+// Karaoke lyrics timing (based on whisper JSON word-level timestamps)
+const lyrics = [
+  { start: 8.48, end: 16.88, text: "I'm looking for a place to rest, a place to be" },
+  { start: 16.88, end: 25.38, text: "The perfect home for you and me" },
+  { start: 27.08, end: 30.38, text: "But home was never just a place" },
+  { start: 31.20, end: 35.38, text: "It's love and time and warm embrace" },
+  { start: 35.88, end: 40.38, text: "The family bonds that hold so tight" },
+  { start: 40.38, end: 44.60, text: "The memories that guide your light" },
+  { start: 45.92, end: 50.80, text: "From Amritsar's dawn to Seattle's night" },
+  { start: 50.80, end: 55.80, text: "You've traveled far but kept your light" },
+  { start: 55.80, end: 60.86, text: "For home resides within your soul" },
+  { start: 61.80, end: 67.20, text: "The love that makes you whole" },
+  { start: 67.80, end: 74.68, text: "Each star above, a day you've known" },
+  { start: 74.68, end: 78.88, text: "Eighteen thousand, two hundred, sixty-three" },
+  { start: 78.88, end: 83.86, text: "Fifty years of love and light" },
+  { start: 83.86, end: 88.86, text: "Every single one, yours to brighten" },
+  { start: 102.50, end: 109.80, text: "Happy birthday, Nancy dear, our love for you" },
+  { start: 111.62, end: 115.18, text: "Is always near" }
+];
+
+// Karaoke display update
+function updateKaraoke(){
+  const audio = document.getElementById('birthday-audio');
+  if(!audio || audio.paused) return;
+  
+  const currentTime = audio.currentTime;
+  const karaokeDisplay = document.getElementById('karaoke-display');
+  if(!karaokeDisplay) return;
+  
+  // Find current lyric
+  const currentLyric = lyrics.find(l => currentTime >= l.start && currentTime <= l.end);
+  
+  if(currentLyric){
+    karaokeDisplay.textContent = currentLyric.text;
+    karaokeDisplay.style.opacity = '1';
+  } else {
+    karaokeDisplay.style.opacity = '0.3';
+  }
+  
+  requestAnimationFrame(updateKaraoke);
+}
+
+// Hide karaoke display
+function hideKaraoke(){
+  const karaokeDisplay = document.getElementById('karaoke-display');
+  if(karaokeDisplay){
+    karaokeDisplay.style.opacity = '0';
+    karaokeDisplay.style.display = 'none';
+  }
+}
+
+// Start the crawl and audio when user clicks
+function startCrawl(){
+  if(audioStarted) return;
+  audioStarted = true;
+  
+  // Fade out cold open
+  document.getElementById('cold-open').classList.add('hidden');
+  
+  // Start audio
+  const audio = document.getElementById('birthday-audio');
+  if(audio) {
+    audio.play().then(() => {
+      updateKaraoke();
+    }).catch(e => console.log('Audio play failed:', e));
+    
+    // Hide karaoke when audio ends
+    audio.addEventListener('ended', hideKaraoke);
+  }
+}
+
+// Click on cold open to start
+document.getElementById('cold-open').addEventListener('click', startCrawl);
+
+// Skip on tap / key (bypasses crawl)
 document.addEventListener('keydown', beginSim);
-document.addEventListener('click',   beginSim);
-document.addEventListener('touchend',beginSim);
+document.addEventListener('click',   function(e){
+  if(!e.target.closest('#cold-open')) beginSim();
+});
+document.addEventListener('touchend',function(e){
+  if(!e.target.closest('#cold-open')) beginSim();
+});
 
 // Auto-advance when crawl animation ends
 document.getElementById('crawl-body').addEventListener('animationend', beginSim);
@@ -631,13 +749,6 @@ const catMeta = {
     culture: { label:"CULTURE",  icon:"\u266a", color:"#e17055" },
     nature:  { label:"NATURE",   icon:"\u2618", color:"#00b894" },
 };
-
-let activeCategories = new Set(['all']);
-let userMilestones   = [];
-let eventTotal = 0, weTotal = 0;
-let bdayShown  = false;
-let confettiParticles = [], confettiActive = false;
-let pulseTimer = null, starburstCount = 0;
 
 // ── Clocks ────────────────────────────────────────────────────────────
 function updateClocks(date) {
