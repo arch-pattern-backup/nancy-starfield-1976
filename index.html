@@ -86,13 +86,14 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
 .card-keepsake .card-label{color:var(--gold);}
 .card-keepsake .card-badge{color:var(--gold);border-color:rgba(255,201,74,.4);}
 
-/* ── Birthday keepsake reveal (Sept 13) ── */
-#keepsake-reveal{display:none;width:88%;max-width:600px;margin:0 auto 28px;
+/* ── Keepsake banner (always visible; birthday accent on Sept 13) ── */
+#keepsake-reveal{width:88%;max-width:600px;margin:0 auto 28px;
   background:linear-gradient(135deg,rgba(255,201,74,.1),rgba(0,0,0,.7));
   border:1px solid rgba(255,201,74,.5);padding:22px 24px;text-align:center;
   position:relative;overflow:hidden;animation:revealIn 1.2s ease-out;}
 #keepsake-reveal::before{content:'';position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(circle at 50% 0%,rgba(255,201,74,.12),transparent 60%);}
+#keepsake-reveal.birthday{box-shadow:0 0 24px rgba(255,201,74,.25);}
 @keyframes revealIn{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
 .reveal-eyebrow{font-size:.55rem;letter-spacing:5px;color:var(--gold);
   text-shadow:0 0 10px rgba(255,180,0,.4);margin-bottom:10px;}
@@ -119,10 +120,10 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
 </div>
 
 <div id="keepsake-reveal">
-  <div class="reveal-eyebrow">&#10022; TODAY'S KEEPSAKE &mdash; SEPTEMBER 13</div>
+  <div class="reveal-eyebrow">&#10022; A BIRTHDAY KEEPSAKE FOR NANCY</div>
   <div class="reveal-title">Sitting in the Quiet</div>
   <div class="reveal-desc">
-    A 50th birthday meditation & keepsake for Nancy.<br>
+    A 50th birthday meditation & keepsake.<br>
     No forced applause, no unlit candles &mdash; only presence, held in the quiet.
   </div>
   <a href="keepsake.html" class="reveal-link">&#9900; OPEN THE KEEPSAKE</a>
@@ -277,11 +278,11 @@ draw();
     hint.style.color=isMob?'#ffe18a':'#b0f0ff';
 })();
 
-// Birthday keepsake reveal — shows only on September 13
+// Birthday accent for the keepsake banner — adds a glow on September 13
 (function(){
     const now=new Date();
     if(now.getMonth()===8 && now.getDate()===13){
-        document.getElementById('keepsake-reveal').style.display='block';
+        document.getElementById('keepsake-reveal').classList.add('birthday');
     }
 })();
 </script>
