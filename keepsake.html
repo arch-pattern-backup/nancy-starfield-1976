@@ -31,6 +31,11 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
 .keepsake::before{top:26px;}
 .keepsake::after{bottom:26px;}
 
+.logo{display:block;width:120px;height:120px;margin:0 auto 22px;
+  border-radius:50%;object-fit:cover;
+  box-shadow:0 0 28px rgba(255,201,74,.25),0 0 60px rgba(0,242,255,.08);
+  filter:saturate(.95);}
+
 .eyebrow{font-size:.55rem;letter-spacing:6px;color:rgba(0,242,255,.6);margin-bottom:18px;}
 .title{font-size:clamp(1.5rem,5vw,2.4rem);font-weight:700;color:#fff;
   text-shadow:0 0 24px rgba(0,242,255,.4);line-height:1.25;letter-spacing:1px;}
@@ -78,6 +83,7 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
 @media (max-width:480px){
   .keepsake{padding:44px 22px 36px;}
   .line{font-size:.78rem;line-height:1.95;}
+  .logo{width:96px;height:96px;margin-bottom:18px;}
   .back{position:static;display:inline-block;margin-bottom:18px;}
 }
 </style>
@@ -88,6 +94,8 @@ canvas{position:fixed;top:0;left:0;z-index:-1;}
 <a href="index.html" class="back">&#8592; BACK TO STARFIELD</a>
 
 <article class="keepsake">
+  <img class="logo" src="sitting_in_the_quiet_logo.jpg"
+    alt="Sitting in the Quiet — keepsake emblem" width="120" height="120">
   <div class="eyebrow">A 50TH BIRTHDAY MEDITATION & KEEPSAKE</div>
   <h1 class="title">Sitting in<br>the <span class="gold">Quiet</span></h1>
   <div class="subtitle">FOR NANCY'S 50TH BIRTHDAY</div>
